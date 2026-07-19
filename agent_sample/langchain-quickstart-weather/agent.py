@@ -1,5 +1,6 @@
 from typing import Callable, Sequence
 
+from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 
 
@@ -9,10 +10,12 @@ class OllamaAgent:
         model_name: str = "qwen2.5:0.5b",
         tools: Sequence[Callable[[str], str]] | None = None,
     ) -> None:
-        self._model = ChatOllama(model=model_name)
-        if tools is not None:
-            self._model.bind_tools(tools)
+        model = ChatOllama(model=model_name)
+        if tools is None:
+            tools = []
+        self._agent = create_agent(model, tools=tools)
+            
 
     def ask(self, prompt: list[str]) -> str:
-        response = self._model.invoke(prompt)
-        return str(getattr(response, "content", response))
+        response = self._agent.invoke({"messages": prompt})
+        return str(response["messages"][-1].content)
