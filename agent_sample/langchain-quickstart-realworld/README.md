@@ -3,7 +3,7 @@
 ## setup
 
 ```bash
-pip install langchain-ollama
+pip install langchain-ollama requests langgraph
 ```
 
 ## run
