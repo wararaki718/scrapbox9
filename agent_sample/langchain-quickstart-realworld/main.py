@@ -19,7 +19,7 @@ def main() -> None:
     # define agent
     agent = OllamaAgent(
         model=model,
-        system_prompt=system_prompt.content,
+        system_prompt=system_prompt,
         tools=[fetch_text],
     )
     agent_response = agent.ask([human_prompt])
@@ -29,7 +29,7 @@ def main() -> None:
 
     deep_agent = OllamaDeepAgent(
         model=model,
-        system_prompt=system_prompt.content,
+        system_prompt=system_prompt,
         tools=[fetch_text],
     )
     deep_agent_response = deep_agent.ask([human_prompt])
