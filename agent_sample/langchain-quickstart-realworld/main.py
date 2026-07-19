@@ -2,7 +2,7 @@ from langchain_ollama import ChatOllama
 
 from agent import OllamaAgent, OllamaDeepAgent
 from builder import HumanPromptBuilder, SystemPromptBuilder
-from tools import fetch_text
+from tools import fetch_text, count_lines_containing, find_first_line
 
 
 def main() -> None:
@@ -20,7 +20,7 @@ def main() -> None:
     agent = OllamaAgent(
         model=model,
         system_prompt=system_prompt,
-        tools=[fetch_text],
+        tools=[fetch_text, count_lines_containing, find_first_line],
     )
     agent_response = agent.ask([human_prompt])
     print("Agent response:")
@@ -30,7 +30,7 @@ def main() -> None:
     deep_agent = OllamaDeepAgent(
         model=model,
         system_prompt=system_prompt,
-        tools=[fetch_text],
+        tools=[fetch_text, count_lines_containing, find_first_line],
     )
     deep_agent_response = deep_agent.ask([human_prompt])
     print("Deep agent response:")
