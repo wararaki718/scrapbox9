@@ -14,7 +14,6 @@ class OllamaAgent:
         if tools is None:
             tools = []
         self._agent = create_agent(model, tools=tools)
-            
 
     def ask(self, prompt: list[str]) -> str:
         response = self._agent.invoke({"messages": prompt})
