@@ -49,6 +49,6 @@ class SystemPromptBuilder:
             - `fetch_text`: loads document text from a URL into the conversation.
             Do not guess line counts or positions—ground them in tool results from the saved file.
             - `count_lines_containing`: counts the number of lines in a text that contain a given substring.
-            - `find_first_line`: finds the 1-based line number of the first line in
+            - `find_first_line`: finds the 1-based line number of the first line in a text that contains a given substring.
         """
         return SystemMessage(content=content)
