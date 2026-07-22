@@ -1,4 +1,4 @@
-# langchain quickstart core components
+# middleware for LangChain Agent with Ollama
 
 ## setup
 
