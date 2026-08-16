@@ -1,14 +1,13 @@
 import torch
 from torch.utils.data import DataLoader
 
-from args import parse_args
-from dataset import PairDataset
-from evaluate import evaluate
-from model import MatryoshkaEncoder
-from preprocess import CharacterTokenizer
-from train import Trainer
-from utils import (
-    DEFAULT_PAIRS,
+from .args import parse_args
+from .dataset import PairDataset
+from .evaluate import evaluate
+from .model import MatryoshkaEncoder
+from .tokenizer import Tokenizer
+from .train import Trainer
+from .utils import (
     load_pairs,
     set_seed,
 )
@@ -19,9 +18,12 @@ def main() -> None:
 
     set_seed(args.seed)
 
-    pairs = load_pairs(__import__("pathlib").Path(args.data_path)) if args.data_path else DEFAULT_PAIRS
-    tokenizer = CharacterTokenizer().fit([text for pair in pairs for text in pair])
+    # load dataset
+    pairs = load_pairs(args.data_path)
+    tokenizer = Tokenizer().fit([text for pair in pairs for text in pair])
     dataset = PairDataset(pairs, tokenizer, args.max_length)
+
+    # model
     device = torch.device(args.device)
     model = MatryoshkaEncoder(tokenizer.vocabulary_size, args.embedding_dim, args.num_heads, args.num_layers, args.max_length)
 
@@ -34,6 +36,7 @@ def main() -> None:
     # evaluate
     evaluation = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
     evaluate(model, evaluation, args.dimensions, device)
+    print("DONE")
 
 
 if __name__ == "__main__":

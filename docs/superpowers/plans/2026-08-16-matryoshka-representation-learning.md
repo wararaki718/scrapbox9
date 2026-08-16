@@ -12,19 +12,19 @@
 
 ## File Structure
 
-- `ml_sample/matryoshka-representation-learning/main.py`: one `main()` function.
-- `ml_sample/matryoshka-representation-learning/model.py`: one `MatryoshkaEncoder` class.
-- `ml_sample/matryoshka-representation-learning/train.py`: one `Trainer` class.
-- `ml_sample/matryoshka-representation-learning/loss.py`: one `matryoshka_infonce_loss()` function.
-- `ml_sample/matryoshka-representation-learning/preprocess.py`: one `CharacterTokenizer` class.
-- `ml_sample/matryoshka-representation-learning/utils.py`: data-level helpers.
-- `ml_sample/matryoshka-representation-learning/tests/test_*.py`: each app module has a matching test module.
+- `ml_sample/mrl-retrieval/main.py`: one `main()` function.
+- `ml_sample/mrl-retrieval/model.py`: one `MatryoshkaEncoder` class.
+- `ml_sample/mrl-retrieval/train.py`: one `Trainer` class.
+- `ml_sample/mrl-retrieval/loss.py`: one `matryoshka_infonce_loss()` function.
+- `ml_sample/mrl-retrieval/preprocess.py`: one `CharacterTokenizer` class.
+- `ml_sample/mrl-retrieval/utils.py`: data-level helpers.
+- `ml_sample/mrl-retrieval/tests/test_*.py`: each app module has a matching test module.
 
 ### Task 1: Character Tokenization
 
 **Files:**
-- Create: `ml_sample/matryoshka-representation-learning/tests/test_preprocess.py`
-- Create: `ml_sample/matryoshka-representation-learning/preprocess.py`
+- Create: `ml_sample/mrl-retrieval/tests/test_preprocess.py`
+- Create: `ml_sample/mrl-retrieval/preprocess.py`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -41,7 +41,7 @@ Create the `unittest` module with `torch`, add the sample root to `sys.path`, an
 
 - [ ] **Step 2: Verify the test fails**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_preprocess -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_preprocess -v`
 
 Expected: FAIL because `preprocess` does not exist.
 
@@ -78,15 +78,15 @@ class CharacterTokenizer:
 
 - [ ] **Step 4: Verify the test passes**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_preprocess -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_preprocess -v`
 
 Expected: PASS, 1 test.
 
 ### Task 2: Data Helpers
 
 **Files:**
-- Create: `ml_sample/matryoshka-representation-learning/tests/test_utils.py`
-- Create: `ml_sample/matryoshka-representation-learning/utils.py`
+- Create: `ml_sample/mrl-retrieval/tests/test_utils.py`
+- Create: `ml_sample/mrl-retrieval/utils.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -110,7 +110,7 @@ def test_recall_counts_diagonal_match(self) -> None:
 
 - [ ] **Step 2: Verify failure**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_utils -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_utils -v`
 
 Expected: FAIL because `utils` does not exist.
 
@@ -120,15 +120,15 @@ Create `DEFAULT_PAIRS` with four Japanese pairs; `load_pairs(path)` to parse non
 
 - [ ] **Step 4: Verify success**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_utils -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_utils -v`
 
 Expected: PASS, 3 tests.
 
 ### Task 3: Encoder
 
 **Files:**
-- Create: `ml_sample/matryoshka-representation-learning/tests/test_model.py`
-- Create: `ml_sample/matryoshka-representation-learning/model.py`
+- Create: `ml_sample/mrl-retrieval/tests/test_model.py`
+- Create: `ml_sample/mrl-retrieval/model.py`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -142,7 +142,7 @@ def test_encoder_returns_normalized_prefix(self) -> None:
 
 - [ ] **Step 2: Verify failure**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_model -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_model -v`
 
 Expected: FAIL because `model` does not exist.
 
@@ -152,15 +152,15 @@ Use token and position `nn.Embedding`, a `batch_first=True` `nn.TransformerEncod
 
 - [ ] **Step 4: Verify success**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_model -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_model -v`
 
 Expected: PASS, 1 test.
 
 ### Task 4: Matryoshka Loss
 
 **Files:**
-- Create: `ml_sample/matryoshka-representation-learning/tests/test_loss.py`
-- Create: `ml_sample/matryoshka-representation-learning/loss.py`
+- Create: `ml_sample/mrl-retrieval/tests/test_loss.py`
+- Create: `ml_sample/mrl-retrieval/loss.py`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -176,7 +176,7 @@ def test_loss_backpropagates_at_all_prefixes(self) -> None:
 
 - [ ] **Step 2: Verify failure**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_loss -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_loss -v`
 
 Expected: FAIL because `loss` does not exist.
 
@@ -186,15 +186,15 @@ Validate matching rank-2 tensors, a positive temperature, and valid positive pre
 
 - [ ] **Step 4: Verify success**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_loss -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_loss -v`
 
 Expected: PASS, 1 test.
 
 ### Task 5: Training
 
 **Files:**
-- Create: `ml_sample/matryoshka-representation-learning/tests/test_train.py`
-- Create: `ml_sample/matryoshka-representation-learning/train.py`
+- Create: `ml_sample/mrl-retrieval/tests/test_train.py`
+- Create: `ml_sample/mrl-retrieval/train.py`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -211,7 +211,7 @@ Build `tokenizer` from every text in the pairs before the test body.
 
 - [ ] **Step 2: Verify failure**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_train -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_train -v`
 
 Expected: FAIL because `train` does not exist.
 
@@ -221,17 +221,17 @@ Accept the encoder, dimensions, temperature, learning rate, and device; move the
 
 - [ ] **Step 4: Verify success**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_train -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_train -v`
 
 Expected: PASS, 1 test.
 
 ### Task 6: CLI And Documentation
 
 **Files:**
-- Create: `ml_sample/matryoshka-representation-learning/tests/test_main.py`
-- Create: `ml_sample/matryoshka-representation-learning/main.py`
-- Create: `ml_sample/matryoshka-representation-learning/requirements.txt`
-- Modify: `ml_sample/matryoshka-representation-learning/README.md`
+- Create: `ml_sample/mrl-retrieval/tests/test_main.py`
+- Create: `ml_sample/mrl-retrieval/main.py`
+- Create: `ml_sample/mrl-retrieval/requirements.txt`
+- Modify: `ml_sample/mrl-retrieval/README.md`
 
 - [ ] **Step 1: Write the failing CLI test**
 
@@ -246,7 +246,7 @@ def test_main_reports_every_requested_dimension(self) -> None:
 
 - [ ] **Step 2: Verify failure**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest tests.test_main -v`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest tests.test_main -v`
 
 Expected: FAIL because `main` does not exist.
 
@@ -260,7 +260,7 @@ Put `torch>=2.2,<3` in `requirements.txt`. In the README, document virtual-envir
 
 - [ ] **Step 5: Verify the sample**
 
-Run: `cd ml_sample/matryoshka-representation-learning && python3 -m unittest discover -s tests -v && python3 main.py --epochs 2 --batch-size 4 --embedding-dim 16 --dimensions 4,8,16 --max-length 32 --num-heads 2 --num-layers 1`
+Run: `cd ml_sample/mrl-retrieval && python3 -m unittest discover -s tests -v && python3 main.py --epochs 2 --batch-size 4 --embedding-dim 16 --dimensions 4,8,16 --max-length 32 --num-heads 2 --num-layers 1`
 
 Expected: all tests pass; two loss lines and Recall@1 for dimensions 4, 8, and 16 are printed.
 

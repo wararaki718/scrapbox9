@@ -1,14 +1,14 @@
 import torch
 from torch.utils.data import Dataset
 
-from preprocess import CharacterTokenizer
+from .tokenizer import Tokenizer
 
 
 class PairDataset(Dataset[dict[str, torch.Tensor]]):
     def __init__(
         self,
         pairs: list[tuple[str, str]],
-        tokenizer: CharacterTokenizer,
+        tokenizer: Tokenizer,
         max_length: int,
     ) -> None:
         if not pairs:

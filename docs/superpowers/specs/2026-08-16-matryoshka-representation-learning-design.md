@@ -9,7 +9,7 @@ several embedding prefix sizes.
 
 ## Scope
 
-The sample is located in `ml_sample/matryoshka-representation-learning/` and
+The sample is located in `ml_sample/mrl-retrieval/` and
 does not require downloading a pretrained model or dataset. It uses a small
 character-level tokenizer and a PyTorch Transformer encoder.
 
@@ -77,7 +77,7 @@ handled by the tokenizer without failing the training loop.
 Test files mirror the application-file layout exactly:
 
 ```text
-matryoshka-representation-learning/
+mrl-retrieval/
   main.py                 tests/test_main.py
   model.py                tests/test_model.py
   train.py                tests/test_train.py

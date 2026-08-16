@@ -1,10 +1,11 @@
 import argparse
 from collections.abc import Sequence
+from pathlib import Path
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-path")
+    parser.add_argument("--data-path", type=Path)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--embedding-dim", type=int, default=64)

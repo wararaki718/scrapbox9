@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 
 
-class CharacterTokenizer:
+class Tokenizer:
     def __init__(self) -> None:
         self._vocabulary = {"<pad>": 0, "<unk>": 1}
 
@@ -15,18 +15,22 @@ class CharacterTokenizer:
     def unknown_id(self) -> int:
         return self._vocabulary["<unk>"]
 
-    def fit(self, texts: list[str]) -> CharacterTokenizer:
+    def tokenize(self, text: str) -> list[str]:
+        return list(text)
+
+    def fit(self, texts: list[str]) -> Tokenizer:
         for text in texts:
-            for character in text:
-                if character not in self._vocabulary:
-                    self._vocabulary[character] = len(self._vocabulary)
+            for token in self.tokenize(text):
+                if token not in self._vocabulary:
+                    self._vocabulary[token] = len(self._vocabulary)
         return self
 
     def encode(self, text: str, max_length: int) -> tuple[torch.Tensor, torch.Tensor]:
         if max_length <= 0:
             raise ValueError("max_length must be positive")
 
-        token_ids = [self._vocabulary.get(character, self.unknown_id) for character in text[:max_length]]
+        tokens = self.tokenize(text)[:max_length]
+        token_ids = [self._vocabulary.get(token, self.unknown_id) for token in tokens]
         attention_mask = [1] * len(token_ids)
         token_ids.extend([0] * (max_length - len(token_ids)))
         attention_mask.extend([0] * (max_length - len(attention_mask)))

@@ -5,7 +5,7 @@ from pathlib import Path
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from loss import matryoshka_infonce_loss
+from app.loss import matryoshka_infonce_loss
 
 
 class LossTests(unittest.TestCase):
