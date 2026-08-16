@@ -1,10 +1,13 @@
 import torch
 from torch.nn import functional as functional
+from torch.utils.data import DataLoader
+
+from .model import MatryoshkaEncoder
 
 
 def evaluate(
-    model: object,
-    loader: object,
+    model: MatryoshkaEncoder,
+    loader: DataLoader[dict[str, torch.Tensor]],
     dimensions: list[int],
     device: torch.device,
 ) -> dict[int, float]:
