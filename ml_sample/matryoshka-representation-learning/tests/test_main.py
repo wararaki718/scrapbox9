@@ -14,6 +14,7 @@ class MainTests(unittest.TestCase):
         arguments = ["main.py", "--epochs", "1", "--batch-size", "4", "--embedding-dim", "8", "--dimensions", "4,8", "--max-length", "16", "--num-heads", "2", "--num-layers", "1"]
         output = io.StringIO()
         with patch.object(sys, "argv", arguments), redirect_stdout(output):
-            main.main()
+            result = main.main()
         self.assertIn("dimension=4 Recall@1=", output.getvalue())
         self.assertIn("dimension=8 Recall@1=", output.getvalue())
+        self.assertIsNone(result)
