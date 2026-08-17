@@ -1,0 +1,1 @@
+"""Tests for the MRL image-classification sample."""
