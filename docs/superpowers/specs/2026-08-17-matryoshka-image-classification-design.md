@@ -22,8 +22,8 @@ useful classifications from progressively shorter prefixes of one embedding.
 - `app/args.py` exposes `parse_args()`, validates command-line values, and
   converts the comma-separated prefix-dimension option into integers.
 - `app/dataset.py` exposes `create_dataloaders()`, which downloads CIFAR-10,
-  applies tensor conversion and CIFAR-10 normalization, and returns train and
-  test data loaders.
+  applies tensor conversion and CIFAR-10 normalization, samples both splits,
+  and returns train and test data loaders.
 - `app/model.py` defines `MatryoshkaImageClassifier`: a small convolutional
   feature extractor, a projection to the maximum embedding dimension, and one
   linear classifier for each requested prefix dimension.
@@ -69,10 +69,21 @@ set and prints results such as `dimension=16 accuracy=0.4200`.
 ## CLI And Validation
 
 `app/main.py` supports data directory, epoch count, batch size, embedding
-dimension, prefix dimensions, learning rate, random seed, and device options.
+dimension, prefix dimensions, learning rate, random seed, device, and train
+and test sample-count options. The default sample counts are 1,000 training
+images and 200 test images, making the default run suitable for quick local
+validation.
+
+`create_dataloaders()` uses a locally seeded `torch.Generator` and a random
+permutation to select each split without replacement. The seed is supplied by
+the CLI, so the same configuration selects the same examples on every run.
+The training and test sample counts are positive and cannot exceed their
+respective CIFAR-10 split sizes. To train on all CIFAR-10 images, users set
+`--train-samples 50000 --test-samples 10000`.
+
 The program rejects non-positive batch sizes, epochs, embedding dimensions,
-and learning rates; empty or duplicate prefix dimensions; and dimensions that
-exceed the embedding dimension.
+learning rates, and sample counts; empty or duplicate prefix dimensions; and
+dimensions that exceed the embedding dimension.
 
 The default prefix dimensions are `8,16,32,64` with an embedding dimension of
 `64`. The default device is automatically selected as CUDA when available and
@@ -93,3 +104,5 @@ small in-memory tensor datasets wherever data loading is not under test.
 - finite MRL loss and backpropagation through every classifier;
 - optimizer-driven parameter updates and per-prefix accuracy accounting;
 - a lightweight `main()` integration run using patched data loaders.
+- reproducible train/test sampling, sample-count validation, and sampler-size
+  propagation into data loaders.
