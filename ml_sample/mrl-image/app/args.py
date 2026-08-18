@@ -46,6 +46,27 @@ def _parse_dimensions(value: str, embedding_dim: int, parser: argparse.ArgumentP
     return dimensions
 
 
+def _parse_loss_weights(
+    value: str | None, dimensions: Sequence[int], parser: argparse.ArgumentParser
+) -> list[float]:
+    if value is None:
+        return [1.0] * len(dimensions)
+    if not value:
+        parser.error("loss-weights must not be empty")
+
+    try:
+        loss_weights = [float(component) for component in value.split(",")]
+    except ValueError:
+        parser.error("loss-weights must be comma-separated numbers")
+
+    if len(loss_weights) != len(dimensions):
+        parser.error("loss-weights must contain one value per dimension")
+    if any(not math.isfinite(weight) or weight < 0 for weight in loss_weights):
+        parser.error("loss-weights must be non-negative finite numbers")
+
+    return loss_weights
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
@@ -55,10 +76,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--test-samples", type=_positive_int, default=200)
     parser.add_argument("--embedding-dim", type=_positive_int, default=64)
     parser.add_argument("--dimensions", default="8,16,32,64")
+    parser.add_argument("--loss-weights")
     parser.add_argument("--learning-rate", type=_positive_float, default=1e-3)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", type=_device, default="cuda" if torch.cuda.is_available() else "cpu")
 
     args = parser.parse_args(argv)
     args.dimensions = _parse_dimensions(args.dimensions, args.embedding_dim, parser)
+    args.loss_weights = _parse_loss_weights(args.loss_weights, args.dimensions, parser)
     return args

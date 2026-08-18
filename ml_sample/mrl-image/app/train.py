@@ -1,4 +1,5 @@
 import math
+from collections.abc import Sequence
 
 import torch
 from torch.utils.data import DataLoader
@@ -13,12 +14,18 @@ class Trainer:
         model: MatryoshkaImageClassifier,
         device: torch.device,
         learning_rate: float,
+        relative_importance: Sequence[float],
     ) -> None:
         if not math.isfinite(learning_rate) or learning_rate <= 0:
             raise ValueError("learning_rate must be positive and finite")
+        if len(relative_importance) != len(model.dimensions):
+            raise ValueError("relative_importance length must match model dimensions")
+        if any(not math.isfinite(weight) or weight < 0 for weight in relative_importance):
+            raise ValueError("relative_importance values must be finite and nonnegative")
 
         self.model = model.to(device)
         self.device = device
+        self.relative_importance = tuple(relative_importance)
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
 
     def train_epoch(self, loader: DataLoader) -> float:
@@ -30,7 +37,7 @@ class Trainer:
             images = images.to(self.device)
             labels = labels.to(self.device)
             logits_by_dimension = self.model(images)
-            loss = matryoshka_cross_entropy(logits_by_dimension, labels)
+            loss = matryoshka_cross_entropy(logits_by_dimension, labels, self.relative_importance)
 
             self.optimizer.zero_grad()
             loss.backward()

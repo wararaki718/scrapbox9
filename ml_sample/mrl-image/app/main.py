@@ -18,7 +18,7 @@ def main() -> None:
         seed=args.seed,
     )
     model = MatryoshkaImageClassifier(args.embedding_dim, args.dimensions)
-    trainer = Trainer(model, torch.device(args.device), args.learning_rate)
+    trainer = Trainer(model, torch.device(args.device), args.learning_rate, args.loss_weights)
 
     for epoch in range(1, args.epochs + 1):
         loss = trainer.train_epoch(train_loader)

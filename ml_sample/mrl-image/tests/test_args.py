@@ -1,5 +1,7 @@
+import io
 import sys
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -12,6 +14,32 @@ class ArgsTests(unittest.TestCase):
         args = parse_args(["--embedding-dim", "16", "--dimensions", "4,8,16"])
 
         self.assertEqual(args.dimensions, [4, 8, 16])
+
+    def test_parse_args_uses_unit_loss_weights_by_default(self) -> None:
+        args = parse_args(["--dimensions", "4,8"])
+
+        self.assertEqual(args.loss_weights, [1.0, 1.0])
+
+    def test_parse_args_parses_loss_weights(self) -> None:
+        args = parse_args(["--dimensions", "4,8", "--loss-weights", "2,0.5"])
+
+        self.assertEqual(args.loss_weights, [2.0, 0.5])
+
+    def test_parse_args_rejects_invalid_loss_weights(self) -> None:
+        cases = (
+            ("", "loss-weights must not be empty"),
+            ("1", "loss-weights must contain one value per dimension"),
+            ("1,-0.5", "loss-weights must be non-negative finite numbers"),
+            ("nan,1", "loss-weights must be non-negative finite numbers"),
+            ("inf,1", "loss-weights must be non-negative finite numbers"),
+            ("nope,1", "loss-weights must be comma-separated numbers"),
+        )
+
+        for value, message in cases:
+            with self.subTest(value=value), self.assertRaises(SystemExit), redirect_stderr(io.StringIO()) as error_output:
+                parse_args(["--dimensions", "4,8", "--loss-weights", value])
+
+            self.assertIn(message, error_output.getvalue())
 
     def test_parse_args_uses_default_sample_counts(self) -> None:
         args = parse_args([])

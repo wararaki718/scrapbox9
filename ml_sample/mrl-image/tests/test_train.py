@@ -2,6 +2,7 @@ import math
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -50,7 +51,7 @@ class FixedPrefixLogitModel(torch.nn.Module):
 class TrainerTests(unittest.TestCase):
     def setUp(self) -> None:
         self.model = MatryoshkaImageClassifier(embedding_dim=8, dimensions=[4, 8])
-        self.trainer = Trainer(self.model, torch.device("cpu"), learning_rate=0.01)
+        self.trainer = Trainer(self.model, torch.device("cpu"), 0.01, [1.0, 1.0])
 
     def test_train_epoch_updates_projection_and_returns_finite_loss(self) -> None:
         loader = DataLoader(
@@ -71,7 +72,7 @@ class TrainerTests(unittest.TestCase):
             TensorDataset(images, torch.tensor([0, 1, 2])),
             batch_size=2,
         )
-        trainer = Trainer(FixedPrefixLogitModel(), torch.device("cpu"), learning_rate=0.01)
+        trainer = Trainer(FixedPrefixLogitModel(), torch.device("cpu"), 0.01, [1.0, 1.0])
 
         accuracies = trainer.evaluate(loader)
 
@@ -93,7 +94,28 @@ class TrainerTests(unittest.TestCase):
         for learning_rate in (0.0, -0.01, float("inf"), float("nan")):
             with self.subTest(learning_rate=learning_rate):
                 with self.assertRaises(ValueError):
-                    Trainer(self.model, torch.device("cpu"), learning_rate)
+                    Trainer(self.model, torch.device("cpu"), learning_rate, [1.0, 1.0])
+
+    def test_constructor_rejects_invalid_relative_importance(self) -> None:
+        for relative_importance in ([1.0], [1.0, 1.0, 1.0], [1.0, -1.0], [1.0, float("inf")]):
+            with self.subTest(relative_importance=relative_importance):
+                with self.assertRaises(ValueError):
+                    Trainer(self.model, torch.device("cpu"), 0.01, relative_importance)
+
+    def test_train_epoch_passes_relative_importance_to_loss(self) -> None:
+        loader = DataLoader(
+            TensorDataset(torch.rand(2, 3, 32, 32), torch.tensor([0, 1])),
+            batch_size=2,
+        )
+        trainer = Trainer(self.model, torch.device("cpu"), 0.01, [2.0, 1.0])
+
+        with patch(
+            "app.train.matryoshka_cross_entropy",
+            wraps=__import__("app.loss", fromlist=["matryoshka_cross_entropy"]).matryoshka_cross_entropy,
+        ) as cross_entropy:
+            trainer.train_epoch(loader)
+
+        self.assertEqual(cross_entropy.call_args.args[2], (2.0, 1.0))
 
 
 if __name__ == "__main__":

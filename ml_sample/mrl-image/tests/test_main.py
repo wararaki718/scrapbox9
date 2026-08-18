@@ -3,15 +3,18 @@ import sys
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
+from app.train import Trainer
+
 
 class MainTests(unittest.TestCase):
+    @patch("app.main.Trainer", wraps=Trainer)
     @patch("app.main.create_dataloaders")
-    def test_main_trains_and_reports_accuracy_for_each_dimension(self, create_dataloaders):
+    def test_main_trains_and_reports_accuracy_for_each_dimension(self, create_dataloaders, trainer_class):
         from app.main import main
 
         images = torch.randn(4, 3, 32, 32)
@@ -54,6 +57,7 @@ class MainTests(unittest.TestCase):
             test_samples=200,
             seed=42,
         )
+        trainer_class.assert_called_once_with(ANY, torch.device("cpu"), 1e-3, [1.0, 1.0])
 
 
 if __name__ == "__main__":
