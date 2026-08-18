@@ -13,6 +13,17 @@ class ArgsTests(unittest.TestCase):
 
         self.assertEqual(args.dimensions, [4, 8, 16])
 
+    def test_parse_args_uses_default_sample_counts(self) -> None:
+        args = parse_args([])
+
+        self.assertEqual(args.train_samples, 1000)
+        self.assertEqual(args.test_samples, 200)
+
+    def test_parse_args_rejects_non_positive_sample_counts(self) -> None:
+        for option in ("--train-samples", "--test-samples"):
+            with self.subTest(option=option), self.assertRaises(SystemExit):
+                parse_args([option, "0"])
+
     def test_parse_args_rejects_duplicate_dimensions(self) -> None:
         with self.assertRaises(SystemExit):
             parse_args(["--dimensions", "8,8"])

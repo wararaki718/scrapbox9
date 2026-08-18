@@ -51,6 +51,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
     parser.add_argument("--epochs", type=_positive_int, default=2)
     parser.add_argument("--batch-size", type=_positive_int, default=64)
+    parser.add_argument("--train-samples", type=_positive_int, default=1000)
+    parser.add_argument("--test-samples", type=_positive_int, default=200)
     parser.add_argument("--embedding-dim", type=_positive_int, default=64)
     parser.add_argument("--dimensions", default="8,16,32,64")
     parser.add_argument("--learning-rate", type=_positive_float, default=1e-3)

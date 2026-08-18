@@ -47,7 +47,13 @@ class MainTests(unittest.TestCase):
         self.assertIn("epoch=1 loss=", result)
         self.assertIn("dimension=4 accuracy=", result)
         self.assertIn("dimension=8 accuracy=", result)
-        create_dataloaders.assert_called_once_with(Path("data"), 64)
+        create_dataloaders.assert_called_once_with(
+            Path("data"),
+            batch_size=64,
+            train_samples=1000,
+            test_samples=200,
+            seed=42,
+        )
 
 
 if __name__ == "__main__":

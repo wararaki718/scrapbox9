@@ -10,7 +10,13 @@ def main() -> None:
     args = parse_args()
     torch.manual_seed(args.seed)
 
-    train_loader, test_loader = create_dataloaders(args.data_dir, args.batch_size)
+    train_loader, test_loader = create_dataloaders(
+        args.data_dir,
+        batch_size=args.batch_size,
+        train_samples=args.train_samples,
+        test_samples=args.test_samples,
+        seed=args.seed,
+    )
     model = MatryoshkaImageClassifier(args.embedding_dim, args.dimensions)
     trainer = Trainer(model, torch.device(args.device), args.learning_rate)
 
