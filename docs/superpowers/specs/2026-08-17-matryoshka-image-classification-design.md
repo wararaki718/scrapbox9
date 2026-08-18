@@ -27,8 +27,9 @@ useful classifications from progressively shorter prefixes of one embedding.
 - `app/model.py` defines `MatryoshkaImageClassifier`: a small convolutional
   feature extractor, a projection to the maximum embedding dimension, and one
   linear classifier for each requested prefix dimension.
-- `app/loss.py` exposes `matryoshka_cross_entropy()`, which computes the mean
-  of cross-entropy losses for all prefix logits.
+- `app/loss.py` exposes `matryoshka_cross_entropy()`, which computes the
+  relative-importance-weighted sum of cross-entropy losses for all prefix
+  logits.
 - `app/train.py` defines `Trainer`, which performs one training epoch and
   evaluates accuracy independently for every prefix dimension.
 - `app/main.py` defines `main()`, which builds the loaders and model, runs
@@ -56,12 +57,14 @@ and produces ten CIFAR-10 class logits. For target class $y$, the training
 loss is
 
 $$
-L = \frac{1}{|\mathcal{D}|} \sum_{d \in \mathcal{D}}
-    \operatorname{CrossEntropy}(h_d(z^{(d)}), y)
+L = \sum_{d \in \mathcal{D}}
+  c_d \cdot \operatorname{CrossEntropy}(h_d(z^{(d)}), y)
 $$
 
-where $\mathcal{D}$ is the selected set of prefix dimensions. This optimizes
-all prefixes jointly, so short embeddings remain independently usable.
+where $\mathcal{D}$ is the selected set of prefix dimensions and $c_d \geq 0$
+is that prefix's relative importance. The default uses $c_d = 1$ for every
+prefix, matching the standard MRL setting in Appendix A of the paper. This
+optimizes all prefixes jointly, so short embeddings remain independently usable.
 
 Evaluation computes accuracy for every prefix classifier on the CIFAR-10 test
 set and prints results such as `dimension=16 accuracy=0.4200`.
@@ -74,6 +77,12 @@ and test sample-count options. The default sample counts are 1,000 training
 images and 200 test images, making the default run suitable for quick local
 validation.
 
+The optional comma-separated `--loss-weights` setting assigns relative
+importance to the configured prefix dimensions in order. When omitted, all
+weights are `1.0`. It must contain exactly one finite, non-negative value per
+prefix dimension. For example, `--dimensions 8,16,32,64 --loss-weights
+2,1,1,1` doubles the relative contribution of the 8-dimensional classifier.
+
 `create_dataloaders()` uses a locally seeded `torch.Generator` and a random
 permutation to select each split without replacement. The seed is supplied by
 the CLI, so the same configuration selects the same examples on every run.
@@ -83,7 +92,8 @@ respective CIFAR-10 split sizes. To train on all CIFAR-10 images, users set
 
 The program rejects non-positive batch sizes, epochs, embedding dimensions,
 learning rates, and sample counts; empty or duplicate prefix dimensions; and
-dimensions that exceed the embedding dimension.
+dimensions that exceed the embedding dimension; and malformed, mismatched,
+negative, or non-finite loss weights.
 
 The default prefix dimensions are `8,16,32,64` with an embedding dimension of
 `64`. The default device is automatically selected as CUDA when available and
@@ -102,6 +112,7 @@ small in-memory tensor datasets wherever data loading is not under test.
 - data loader output shape and class labels, with CIFAR-10 construction mocked;
 - embedding and prefix-logit shapes;
 - finite MRL loss and backpropagation through every classifier;
+- relative-importance parsing, validation, and weighted-loss calculation;
 - optimizer-driven parameter updates and per-prefix accuracy accounting;
 - a lightweight `main()` integration run using patched data loaders.
 - reproducible train/test sampling, sample-count validation, and sampler-size
