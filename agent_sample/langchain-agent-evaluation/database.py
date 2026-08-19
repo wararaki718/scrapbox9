@@ -122,7 +122,7 @@ def lookup_purchases(
         WHERE {" AND ".join(where_clauses)}
         ORDER BY substr(i.InvoiceDate, 1, 10), il.InvoiceLineId
     """
-    return _fetch_dict_rows(database, query, parameters)
+    return [_purchase_lookup_row(row) for row in _fetch_rows(database, query, parameters)]
 
 
 def find_tracks(database: Path, name: str | None, artist: str | None) -> list[TrackRow]:
@@ -143,7 +143,7 @@ def find_tracks(database: Path, name: str | None, artist: str | None) -> list[Tr
         ORDER BY lower(t.Name), lower(al.Title), lower(ar.Name), t.TrackId
         LIMIT 20
     """
-    return _fetch_dict_rows(database, query, parameters)
+    return [_track_row(row) for row in _fetch_rows(database, query, parameters)]
 
 
 def find_albums(database: Path, title: str | None, artist: str | None) -> list[AlbumRow]:
@@ -162,7 +162,7 @@ def find_albums(database: Path, title: str | None, artist: str | None) -> list[A
         ORDER BY lower(al.Title), lower(ar.Name), al.AlbumId
         LIMIT 20
     """
-    return _fetch_dict_rows(database, query, parameters)
+    return [_album_row(row) for row in _fetch_rows(database, query, parameters)]
 
 
 def find_artists(database: Path, name: str | None) -> list[ArtistRow]:
@@ -177,7 +177,39 @@ def find_artists(database: Path, name: str | None) -> list[ArtistRow]:
         ORDER BY lower(ar.Name), ar.ArtistId
         LIMIT 20
     """
-    return _fetch_dict_rows(database, query, parameters)
+    return [_artist_row(row) for row in _fetch_rows(database, query, parameters)]
+
+
+def _purchase_lookup_row(row: sqlite3.Row) -> PurchaseLookupRow:
+    return PurchaseLookupRow(
+        invoice_line_id=row["invoice_line_id"],
+        track_name=row["track_name"],
+        artist_name=row["artist_name"],
+        purchase_date=row["purchase_date"],
+        quantity_purchased=row["quantity_purchased"],
+        price_per_unit=row["price_per_unit"],
+    )
+
+
+def _track_row(row: sqlite3.Row) -> TrackRow:
+    return TrackRow(
+        track_name=row["track_name"],
+        album_title=row["album_title"],
+        artist_name=row["artist_name"],
+    )
+
+
+def _album_row(row: sqlite3.Row) -> AlbumRow:
+    return AlbumRow(
+        album_title=row["album_title"],
+        artist_name=row["artist_name"],
+    )
+
+
+def _artist_row(row: sqlite3.Row) -> ArtistRow:
+    return ArtistRow(
+        artist_name=row["artist_name"],
+    )
 
 
 def _refund_total(
@@ -243,15 +275,14 @@ def _where_sql(where_clauses: list[str]) -> str:
     return f"WHERE {' AND '.join(where_clauses)}"
 
 
-def _fetch_dict_rows(
+def _fetch_rows(
     database: Path,
     query: str,
     parameters: list[str],
-) -> list[dict[str, object]]:
+) -> list[sqlite3.Row]:
     connection = sqlite3.connect(database)
     connection.row_factory = sqlite3.Row
     try:
-        rows = connection.execute(query, tuple(parameters)).fetchall()
-        return [dict(row) for row in rows]
+        return connection.execute(query, tuple(parameters)).fetchall()
     finally:
         connection.close()
