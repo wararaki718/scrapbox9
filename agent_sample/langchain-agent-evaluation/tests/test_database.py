@@ -1,9 +1,11 @@
+import json
 import sqlite3
 import sys
 from pathlib import Path
 
 import pytest
 import requests
+from pydantic import ValidationError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -16,6 +18,8 @@ from database import (
     lookup_purchases,
     refund,
 )
+from schemas import PurchaseInformation, UserIntent
+from tools import create_catalog_tools
 
 
 def build_catalog_database(tmp_path: Path) -> Path:
@@ -201,6 +205,18 @@ def test_find_tracks_returns_track_album_and_artist(tmp_path: Path) -> None:
     ]
 
 
+def test_find_tracks_returns_exact_match_result(tmp_path: Path) -> None:
+    database = build_catalog_database(tmp_path)
+
+    assert find_tracks(database, "Black Dog", "Led Zeppelin") == [
+        {
+            "track_name": "Black Dog",
+            "album_title": "IV",
+            "artist_name": "Led Zeppelin",
+        }
+    ]
+
+
 def test_find_albums_returns_album_and_artist(tmp_path: Path) -> None:
     database = build_catalog_database(tmp_path)
 
@@ -216,6 +232,59 @@ def test_find_artists_returns_ordered_results_with_optional_filter(tmp_path: Pat
         {"artist_name": "Led Zeppelin"},
         {"artist_name": "Pink Floyd"},
     ]
+
+
+def test_create_catalog_tools_returns_deterministic_json_results(tmp_path: Path) -> None:
+    database = build_catalog_database(tmp_path)
+
+    lookup_track, lookup_album, lookup_artist = create_catalog_tools(database)
+
+    assert lookup_track.name == "lookup_track"
+    assert lookup_track.invoke({"name": "Black Dog", "artist": "Led Zeppelin"}) == json.dumps(
+        [{"track_name": "Black Dog", "album_title": "IV", "artist_name": "Led Zeppelin"}]
+    )
+    assert lookup_album.invoke({"title": "IV", "artist": "Led Zeppelin"}) == json.dumps(
+        [{"album_title": "IV", "artist_name": "Led Zeppelin"}]
+    )
+    assert lookup_artist.invoke({"name": "Led Zeppelin"}) == json.dumps(
+        [{"artist_name": "Led Zeppelin"}]
+    )
+
+
+def test_purchase_information_tracks_nullable_extraction_fields() -> None:
+    purchase_information = PurchaseInformation(
+        followup=None,
+        invoice_id=None,
+        invoice_line_ids=None,
+        customer_first_name="Aaron",
+        customer_last_name="Mitchell",
+        customer_phone="+1 204",
+        track_name="Black Dog",
+        album_title="IV",
+        artist_name="Led Zeppelin",
+        purchase_date_iso_8601="2009-08-06",
+    )
+
+    assert purchase_information.model_dump() == {
+        "followup": None,
+        "invoice_id": None,
+        "invoice_line_ids": None,
+        "customer_first_name": "Aaron",
+        "customer_last_name": "Mitchell",
+        "customer_phone": "+1 204",
+        "track_name": "Black Dog",
+        "album_title": "IV",
+        "artist_name": "Led Zeppelin",
+        "purchase_date_iso_8601": "2009-08-06",
+    }
+
+
+def test_user_intent_accepts_only_supported_routes() -> None:
+    assert UserIntent(intent="refund").intent == "refund"
+    assert UserIntent(intent="question_answering").intent == "question_answering"
+
+    with pytest.raises(ValidationError):
+        UserIntent(intent="other")
 
 
 class FakeResponse:
