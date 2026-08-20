@@ -26,7 +26,8 @@ Do not invent identifiers, names, phone numbers, products, or dates.
 Return structured data only."""
 
 MISSING_IDENTITY_FOLLOWUP = (
-    "Please share the customer's first name, last name, and phone number so I can look up the purchase."
+    "To process the refund, please share the customer's first name, last name, and phone number "
+    "so I can look up the purchase."
 )
 NO_PURCHASES_FOLLOWUP = (
     "I couldn't find any matching purchases. Please verify the customer's first name, last name, "

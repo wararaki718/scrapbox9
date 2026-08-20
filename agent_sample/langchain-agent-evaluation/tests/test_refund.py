@@ -217,7 +217,8 @@ def test_create_refund_graph_uses_fixed_followup_when_model_has_none(tmp_path: P
     result = graph.invoke({'messages': [HumanMessage(content='I need a refund.')]})
 
     assert result['followup'] == (
-        "Please share the customer's first name, last name, and phone number so I can look up the purchase."
+        "To process the refund, please share the customer's first name, last name, and phone number "
+        "so I can look up the purchase."
     )
 
 
@@ -236,7 +237,8 @@ def test_create_refund_graph_clears_stale_followup_when_current_extraction_has_n
     )
 
     assert result['followup'] == (
-        "Please share the customer's first name, last name, and phone number so I can look up the purchase."
+        "To process the refund, please share the customer's first name, last name, and phone number "
+        "so I can look up the purchase."
     )
 
 
