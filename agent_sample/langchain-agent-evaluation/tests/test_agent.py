@@ -215,3 +215,46 @@ def test_create_support_graph_routes_refunds_into_refund_graph(tmp_path: Path, m
     assert result["customer_last_name"] == "Mitchell"
     assert result["customer_phone"] == "+1 204"
     assert result["invoice_line_ids"] == [6]
+
+
+def test_create_support_graph_preserves_refund_followup_as_history(tmp_path: Path, monkeypatch) -> None:
+    fake_model = FakeModel("refund")
+    refund_followup = "Previewed a refund total of $1.23."
+    refund_graph = FakeRefundGraph(
+        {
+            "followup": refund_followup,
+            "invoice_id": 42,
+        }
+    )
+
+    def fake_create_model():
+        return fake_model
+
+    qa_graph = FakeQuestionAnsweringGraph(AIMessage(content="unused"))
+
+    def fake_create_agent(*args, **kwargs):
+        return qa_graph
+
+    monkeypatch.setattr(agent_module, "create_model", fake_create_model)
+    monkeypatch.setattr(agent_module, "create_catalog_tools", lambda database: ())
+    monkeypatch.setattr(agent_module, "create_agent", fake_create_agent)
+    monkeypatch.setattr(agent_module, "create_refund_graph", lambda model, database: refund_graph)
+
+    graph = agent_module.create_support_graph(tmp_path / "catalog.db")
+
+    result = graph.invoke(
+        {
+            "messages": [HumanMessage(content="Please refund invoice 42.")],
+            "customer_first_name": "Aaron",
+            "customer_last_name": "Mitchell",
+            "customer_phone": "+1 204",
+        }
+    )
+
+    assert result["followup"] == refund_followup
+    assert any(
+        isinstance(message, AIMessage) and message.content == refund_followup for message in result["messages"]
+    )
+    no_followup_update = agent_module._refund_to_parent_update({"followup": "", "invoice_id": 42})
+    assert no_followup_update == {"followup": "", "invoice_id": 42}
+    assert "messages" not in no_followup_update

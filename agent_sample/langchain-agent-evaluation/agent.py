@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Literal, TypedDict
 
 from langchain.agents import create_agent
-from langchain_core.messages import AnyMessage, SystemMessage
+from langchain_core.messages import AIMessage, AnyMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
 from langgraph.graph import END, START, StateGraph
@@ -135,6 +135,9 @@ def _refund_to_parent_update(result: _RefundState) -> AgentState:
     ):
         if child_key in result:
             update[parent_key] = result[child_key]  # type: ignore[literal-required]
+    followup = _normalized_text(result.get("followup"))
+    if followup is not None:
+        update["messages"] = [AIMessage(content=followup)]
     return update
 
 
