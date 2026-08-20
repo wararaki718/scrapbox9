@@ -5,6 +5,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+import httpx
 import requests
 from ollama import ResponseError
 
@@ -87,7 +88,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"Trajectory score: {float(result['trajectory_score']):.2f}")
                 print(f"Reasoning: {result['response_reasoning']}")
                 print()
-    except ConnectionError as exc:
+    except httpx.ConnectError as exc:
         parser.error(_ollama_help_message(exc))
     except ResponseError as exc:
         if _is_missing_model_error(exc):

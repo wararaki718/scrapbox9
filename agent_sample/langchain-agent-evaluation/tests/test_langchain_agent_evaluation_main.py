@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+import httpx
 import pytest
 import requests
 from ollama import ResponseError
@@ -246,7 +247,11 @@ def test_main_reports_ollama_help_with_parser_error_for_connection_failures(
 ) -> None:
     monkeypatch.setattr(main, "ensure_database", lambda path: path)
     monkeypatch.setattr(main, "create_support_graph", lambda database: object())
-    monkeypatch.setattr(main, "run_single_question", lambda graph, question: (_ for _ in ()).throw(ConnectionError("connection refused")))
+    def fake_run_single_question(graph: object, question: str) -> str:
+        request = httpx.Request("POST", "http://localhost:11434/api/generate")
+        raise httpx.ConnectError("connection refused", request=request)
+
+    monkeypatch.setattr(main, "run_single_question", fake_run_single_question)
     monkeypatch.setattr("sys.argv", ["main.py", "--question", "hi"])
 
     with pytest.raises(SystemExit) as exc_info:
