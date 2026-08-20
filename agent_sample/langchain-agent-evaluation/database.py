@@ -8,6 +8,7 @@ import requests
 
 DATABASE_URL = "https://storage.googleapis.com/benchmarks-artifacts/chinook/Chinook.db"
 DOWNLOAD_TIMEOUT = (5, 30)
+LOOKUP_PURCHASES_LIMIT = 20
 
 
 class PurchaseLookupRow(TypedDict):
@@ -121,6 +122,7 @@ def lookup_purchases(
         JOIN Artist ar ON ar.ArtistId = al.ArtistId
         WHERE {" AND ".join(where_clauses)}
         ORDER BY substr(i.InvoiceDate, 1, 10), il.InvoiceLineId
+        LIMIT {LOOKUP_PURCHASES_LIMIT}
     """
     return [_purchase_lookup_row(row) for row in _fetch_rows(database, query, parameters)]
 

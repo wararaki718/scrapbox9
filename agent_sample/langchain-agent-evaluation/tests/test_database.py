@@ -71,6 +71,34 @@ def build_catalog_database(tmp_path: Path) -> Path:
         INSERT INTO InvoiceLine VALUES (6, 2, 5, 0.99, 1);
         """
     )
+    connection.commit()
+    connection.close()
+    return database
+
+
+def build_catalog_database_with_many_purchases(tmp_path: Path) -> Path:
+    database = build_catalog_database(tmp_path)
+    connection = sqlite3.connect(database)
+    connection.executescript(
+        """
+        INSERT INTO Artist VALUES (10, 'Extra Artist');
+        INSERT INTO Album VALUES (11, 'Extra Album', 10);
+        INSERT INTO Track VALUES (12, 'Extra Track', 11);
+        """
+    )
+    for offset in range(25):
+        invoice_id = 100 + offset
+        invoice_line_id = 100 + offset
+        purchase_date = f"2009-08-{7 + offset:02d}"
+        connection.execute(
+            "INSERT INTO Invoice VALUES (?, 1, ?, 0.99)",
+            (invoice_id, purchase_date),
+        )
+        connection.execute(
+            "INSERT INTO InvoiceLine VALUES (?, ?, 12, 0.99, 1)",
+            (invoice_line_id, invoice_id),
+        )
+    connection.commit()
     connection.close()
     return database
 
@@ -191,6 +219,25 @@ def test_lookup_purchases_supports_case_insensitive_optional_album_artist_and_da
             "price_per_unit": 0.99,
         }
     ]
+
+
+def test_lookup_purchases_caps_results_at_twenty_in_deterministic_order(tmp_path: Path) -> None:
+    database = build_catalog_database_with_many_purchases(tmp_path)
+
+    rows = lookup_purchases(
+        database,
+        "Aaron",
+        "Mitchell",
+        "+1 204",
+        None,
+        None,
+        None,
+        None,
+    )
+
+    assert len(rows) == 20
+    assert rows[0]["invoice_line_id"] == 6
+    assert rows[-1]["invoice_line_id"] == 118
 
 
 def test_find_tracks_returns_track_album_and_artist(tmp_path: Path) -> None:
