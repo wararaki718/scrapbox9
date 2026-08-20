@@ -328,6 +328,20 @@ def test_ensure_database_returns_existing_file_without_downloading(
     assert database.read_bytes() == b"existing-data"
 
 
+def test_ensure_database_redownloads_an_empty_existing_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    database = tmp_path / "chinook.db"
+    database.touch()
+    response = FakeResponse(chunks=[b"chinook"])
+
+    monkeypatch.setattr("database.requests.get", lambda *args, **kwargs: response)
+
+    assert ensure_database(database) == database
+    assert database.read_bytes() == b"chinook"
+    assert response.raise_for_status_called is True
+
+
 def test_ensure_database_downloads_atomically_with_timeout(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

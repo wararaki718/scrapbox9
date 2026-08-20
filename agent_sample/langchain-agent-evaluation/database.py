@@ -35,7 +35,7 @@ class ArtistRow(TypedDict):
 
 
 def ensure_database(path: Path) -> Path:
-    if path.is_file():
+    if path.is_file() and path.stat().st_size > 0:
         return path
 
     temporary_path = path.with_name(f".{path.name}.download")
