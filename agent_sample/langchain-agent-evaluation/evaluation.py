@@ -284,6 +284,10 @@ def _event_identifier(event: object) -> str:
 
 def _tool_call_names(event: object) -> list[str]:
     names: list[str] = []
+    for tool_call in _event_tool_calls_from_input(event):
+        name = tool_call.get("name")
+        if isinstance(name, str):
+            names.append(name)
     for message in _event_messages(event):
         tool_calls = _message_tool_calls(message)
         for tool_call in tool_calls:
@@ -308,6 +312,25 @@ def _event_messages(event: object) -> list[object]:
         if isinstance(direct_messages, list):
             messages.extend(direct_messages)
     return messages
+
+
+def _event_tool_calls_from_input(event: object) -> list[Mapping[str, Any]]:
+    tool_calls: list[Mapping[str, Any]] = []
+    for candidate in (_mapping_value(event, "payload"), _mapping_value(event, "data"), event):
+        if not isinstance(candidate, Mapping):
+            continue
+        raw_input = candidate.get("input")
+        if not isinstance(raw_input, list):
+            continue
+        for item in raw_input:
+            if not isinstance(item, Mapping):
+                continue
+            if item.get("type") != "tool_call":
+                continue
+            name = item.get("name")
+            if isinstance(name, str):
+                tool_calls.append(item)
+    return tool_calls
 
 
 def _response_from_event(event: object) -> str | None:

@@ -4,7 +4,7 @@ import asyncio
 import sys
 from pathlib import Path
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.types import Command
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -182,6 +182,45 @@ def test_run_with_trajectory_collects_task_names_tool_calls_and_response() -> No
             "lookup_track",
         ],
     }
+
+
+def test_run_with_trajectory_extracts_tool_names_from_tools_task_input_list() -> None:
+    graph = FakeGraph(
+        stream_events=[
+            (
+                (),
+                {
+                    "type": "task",
+                    "payload": {
+                        "name": "tools",
+                        "input": [
+                            {
+                                "name": "lookup_track",
+                                "args": {},
+                                "id": "call1",
+                                "type": "tool_call",
+                            }
+                        ],
+                    },
+                },
+            ),
+            (
+                (),
+                {
+                    "type": "task_result",
+                    "payload": {
+                        "name": "tools",
+                        "result": {"messages": [ToolMessage(content="ok", tool_call_id="call1")]},
+                    },
+                },
+            ),
+        ]
+    )
+
+    result = asyncio.run(evaluation_module.run_with_trajectory(graph, "What James Brown songs do you have?"))
+
+    assert result["trajectory"] == ["tools", "lookup_track"]
+    assert result["trajectory"].count("lookup_track") == 1
 
 
 def test_run_intent_classifier_uses_direct_node_api() -> None:
