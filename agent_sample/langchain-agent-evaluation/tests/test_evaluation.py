@@ -91,6 +91,17 @@ def test_route_is_correct_requires_exact_match() -> None:
     assert evaluation_module.route_is_correct("refund_agent", "question_answering_agent") is False
 
 
+def test_reference_facts_present_uses_case_insensitive_containment() -> None:
+    assert evaluation_module.reference_facts_present(
+        ["How Many More Times", "What Is And What Should Never Be", "2009-08-06"],
+        "I found How Many More Times and What Is And What Should Never Be on 2009-08-06.",
+    ) is True
+    assert evaluation_module.reference_facts_present(
+        ["How Many More Times", "2009-08-06"],
+        "I found How Many More Times.",
+    ) is False
+
+
 def test_run_graph_uses_test_config_and_normalizes_response() -> None:
     graph = FakeGraph(
         ainvoke_result={

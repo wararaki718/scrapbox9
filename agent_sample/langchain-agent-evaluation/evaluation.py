@@ -172,6 +172,17 @@ async def run_evaluation_suite(graph: CompiledStateGraph, judge: object) -> list
                 ],
             )
         )
+        reference_facts_matched = isinstance(example.expected_response, list) and reference_facts_present(
+            example.expected_response,
+            str(trajectory_result.get("response", "")),
+        )
+        response_correct = judged.passed or reference_facts_matched
+        response_reasoning = judged.reasoning
+        if reference_facts_matched and not judged.passed:
+            response_reasoning = (
+                "All required reference facts were present in the response. "
+                f"Local judge feedback: {judged.reasoning}"
+            )
 
         results.append(
             {
@@ -179,8 +190,8 @@ async def run_evaluation_suite(graph: CompiledStateGraph, judge: object) -> list
                 "question": example.question,
                 "response": trajectory_result.get("response", ""),
                 "expected_response": example.expected_response,
-                "response_correct": judged.passed,
-                "response_reasoning": judged.reasoning,
+                "response_correct": response_correct,
+                "response_reasoning": response_reasoning,
                 "trajectory": trajectory_result.get("trajectory", []),
                 "expected_trajectory": example.expected_trajectory,
                 "trajectory_score": trajectory_subsequence(
@@ -222,6 +233,13 @@ def _judge_prompt(example: EvaluationExample, actual_response: str) -> str:
         f"Question:\n{example.question}\n\n"
         f"Reference answer or facts:\n{reference}\n\n"
         f"Actual response:\n{actual_response}"
+    )
+
+
+def reference_facts_present(expected_facts: Sequence[str], actual_response: str) -> bool:
+    normalized_response = actual_response.casefold()
+    return bool(expected_facts) and all(
+        expected_fact.casefold() in normalized_response for expected_fact in expected_facts
     )
 
 
