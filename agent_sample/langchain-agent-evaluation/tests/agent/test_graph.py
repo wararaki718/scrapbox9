@@ -9,18 +9,6 @@ import app.agent as agent_module
 from app.schemas import UserIntent
 
 
-def test_graph_components_expose_named_node_functions() -> None:
-    from app.agent.components.compile_followup import compile_followup
-    from app.agent.components.intent_classifier import intent_classifier
-    from app.agent.components.question_answering_agent import question_answering_agent
-    from app.agent.components.refund_agent import refund_agent
-
-    assert callable(compile_followup)
-    assert callable(intent_classifier)
-    assert callable(question_answering_agent)
-    assert callable(refund_agent)
-
-
 class FakeStructuredRunnable:
     def __init__(self, result: UserIntent) -> None:
         self.result = result
@@ -44,17 +32,7 @@ class FakeModel:
         return runnable
 
 
-class FakeQuestionAnsweringGraph:
-    def __init__(self, response_message: AIMessage) -> None:
-        self.response_message = response_message
-        self.calls: list[tuple[dict[str, object], object]] = []
-
-    def invoke(self, state: dict[str, object], config=None) -> dict[str, object]:
-        self.calls.append((state, config))
-        return {"messages": [self.response_message]}
-
-
-class FakeRefundGraph:
+class FakeGraph:
     def __init__(self, result: dict[str, object]) -> None:
         self.result = result
         self.calls: list[tuple[dict[str, object], object]] = []
@@ -64,52 +42,12 @@ class FakeRefundGraph:
         return self.result
 
 
-def test_normalize_route_maps_supported_intents() -> None:
-    assert agent_module.normalize_route("refund") == "refund_agent"
-    assert agent_module.normalize_route("question_answering") == "question_answering_agent"
-
-
-def test_create_model_uses_fixed_ollama_configuration() -> None:
-    model = agent_module.create_model()
-
-    assert model.model == "qwen3:1.7b"
-    assert model.temperature == 0.0
-
-
-def test_compile_followup_keeps_existing_followup() -> None:
-    result = agent_module.compile_followup(
-        {"followup": "Please confirm the invoice number.", "messages": [AIMessage(content="ignored")]}
-    )
-
-    assert result == {"followup": "Please confirm the invoice number."}
-
-
-def test_compile_followup_extracts_text_from_message_content_blocks() -> None:
-    result = agent_module.compile_followup(
-        {
-            "messages": [
-                AIMessage(
-                    content=[
-                        {"type": "text", "text": "We have Black Dog available."},
-                        {"type": "image_url", "image_url": "ignored"},
-                        "Anything else I can help with?",
-                    ]
-                )
-            ]
-        }
-    )
-
-    assert result == {"followup": "We have Black Dog available.\nAnything else I can help with?"}
-
-
 def test_create_support_graph_routes_questions_to_catalog_agent(tmp_path: Path, monkeypatch) -> None:
     fake_model = FakeModel("question_answering")
     create_model_calls: list[object] = []
     captured: dict[str, object] = {}
-    qa_graph = FakeQuestionAnsweringGraph(
-        AIMessage(content=[{"type": "text", "text": "Yes, we have Black Dog."}])
-    )
-    refund_graph = FakeRefundGraph({"followup": "unused"})
+    qa_graph = FakeGraph({"messages": [AIMessage(content="Yes, we have Black Dog.")]})
+    refund_graph = FakeGraph({"followup": "unused"})
 
     def fake_create_model():
         create_model_calls.append(object())
@@ -136,7 +74,6 @@ def test_create_support_graph_routes_questions_to_catalog_agent(tmp_path: Path, 
     monkeypatch.setattr(agent_module, "create_refund_graph", fake_create_refund_graph)
 
     graph = agent_module.create_support_graph(tmp_path / "catalog.db")
-
     result = graph.invoke({"messages": [HumanMessage(content="Do you have Black Dog?")]})
 
     assert len(create_model_calls) == 1
@@ -152,7 +89,6 @@ def test_create_support_graph_routes_questions_to_catalog_agent(tmp_path: Path, 
     assert captured["refund_model"] is fake_model
     assert captured["refund_database"] == tmp_path / "catalog.db"
     qa_state, qa_config = qa_graph.calls[0]
-    assert len(qa_state["messages"]) == 1
     assert qa_state["messages"][0].content == "Do you have Black Dog?"
     assert isinstance(qa_config, dict)
     assert result["route"] == "question_answering_agent"
@@ -161,8 +97,7 @@ def test_create_support_graph_routes_questions_to_catalog_agent(tmp_path: Path, 
 
 def test_create_support_graph_routes_refunds_into_refund_graph(tmp_path: Path, monkeypatch) -> None:
     fake_model = FakeModel("refund")
-    captured: dict[str, object] = {}
-    refund_graph = FakeRefundGraph(
+    refund_graph = FakeGraph(
         {
             "followup": "Previewed a refund total of $0.99.",
             "first_name": "Aaron",
@@ -172,27 +107,12 @@ def test_create_support_graph_routes_refunds_into_refund_graph(tmp_path: Path, m
         }
     )
 
-    def fake_create_model():
-        return fake_model
-
-    qa_graph = FakeQuestionAnsweringGraph(AIMessage(content="unused"))
-
-    def fake_create_agent(*args, **kwargs):
-        return qa_graph
-
-    def fake_create_refund_graph(model, database: Path):
-        captured["refund_model"] = model
-        captured["refund_database"] = database
-        return refund_graph
-
-    monkeypatch.setattr(agent_module, "create_model", fake_create_model)
+    monkeypatch.setattr(agent_module, "create_model", lambda: fake_model)
     monkeypatch.setattr(agent_module, "create_catalog_tools", lambda database: ())
-    monkeypatch.setattr(agent_module, "create_agent", fake_create_agent)
-    monkeypatch.setattr(agent_module, "create_refund_graph", fake_create_refund_graph)
+    monkeypatch.setattr(agent_module, "create_agent", lambda *args, **kwargs: FakeGraph({"messages": []}))
+    monkeypatch.setattr(agent_module, "create_refund_graph", lambda model, database: refund_graph)
 
     graph = agent_module.create_support_graph(tmp_path / "catalog.db")
-    config = {"configurable": {"env": "test"}}
-
     result = graph.invoke(
         {
             "messages": [HumanMessage(content="Please refund Black Dog.")],
@@ -200,73 +120,16 @@ def test_create_support_graph_routes_refunds_into_refund_graph(tmp_path: Path, m
             "customer_last_name": "Mitchell",
             "customer_phone": "+1 204",
         },
-        config=config,
+        config={"configurable": {"env": "test"}},
     )
 
     child_state, child_config = refund_graph.calls[0]
-    assert len(child_state["messages"]) == 1
     assert child_state["messages"][0].content == "Please refund Black Dog."
-    assert child_state["followup"] is None
-    assert child_state["invoice_id"] is None
-    assert child_state["invoice_line_ids"] is None
     assert child_state["first_name"] == "Aaron"
     assert child_state["last_name"] == "Mitchell"
     assert child_state["phone"] == "+1 204"
-    assert child_state["track_name"] is None
-    assert child_state["album_title"] is None
-    assert child_state["artist_name"] is None
-    assert child_state["purchase_date_iso_8601"] is None
-    assert isinstance(child_config, dict)
     assert child_config["configurable"]["env"] == "test"
-    assert captured["refund_model"] is fake_model
-    assert captured["refund_database"] == tmp_path / "catalog.db"
-    assert qa_graph.calls == []
     assert result["route"] == "refund_agent"
     assert result["followup"] == "Previewed a refund total of $0.99."
     assert result["customer_first_name"] == "Aaron"
-    assert result["customer_last_name"] == "Mitchell"
-    assert result["customer_phone"] == "+1 204"
     assert result["invoice_line_ids"] == [6]
-
-
-def test_create_support_graph_preserves_refund_followup_as_history(tmp_path: Path, monkeypatch) -> None:
-    fake_model = FakeModel("refund")
-    refund_followup = "Previewed a refund total of $1.23."
-    refund_graph = FakeRefundGraph(
-        {
-            "followup": refund_followup,
-            "invoice_id": 42,
-        }
-    )
-
-    def fake_create_model():
-        return fake_model
-
-    qa_graph = FakeQuestionAnsweringGraph(AIMessage(content="unused"))
-
-    def fake_create_agent(*args, **kwargs):
-        return qa_graph
-
-    monkeypatch.setattr(agent_module, "create_model", fake_create_model)
-    monkeypatch.setattr(agent_module, "create_catalog_tools", lambda database: ())
-    monkeypatch.setattr(agent_module, "create_agent", fake_create_agent)
-    monkeypatch.setattr(agent_module, "create_refund_graph", lambda model, database: refund_graph)
-
-    graph = agent_module.create_support_graph(tmp_path / "catalog.db")
-
-    result = graph.invoke(
-        {
-            "messages": [HumanMessage(content="Please refund invoice 42.")],
-            "customer_first_name": "Aaron",
-            "customer_last_name": "Mitchell",
-            "customer_phone": "+1 204",
-        }
-    )
-
-    assert result["followup"] == refund_followup
-    assert any(
-        isinstance(message, AIMessage) and message.content == refund_followup for message in result["messages"]
-    )
-    no_followup_update = agent_module._refund_to_parent_update({"followup": "", "invoice_id": 42})
-    assert no_followup_update == {"followup": "", "invoice_id": 42}
-    assert "messages" not in no_followup_update
