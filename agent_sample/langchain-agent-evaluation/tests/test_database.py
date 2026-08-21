@@ -7,7 +7,7 @@ import pytest
 import requests
 from pydantic import ValidationError
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.database import (
     DATABASE_URL,
