@@ -9,6 +9,18 @@ import agent as agent_module
 from schemas import UserIntent
 
 
+def test_graph_components_expose_named_node_functions() -> None:
+    from agent.components.compile_followup import compile_followup
+    from agent.components.intent_classifier import intent_classifier
+    from agent.components.question_answering_agent import question_answering_agent
+    from agent.components.refund_agent import refund_agent
+
+    assert callable(compile_followup)
+    assert callable(intent_classifier)
+    assert callable(question_answering_agent)
+    assert callable(refund_agent)
+
+
 class FakeStructuredRunnable:
     def __init__(self, result: UserIntent) -> None:
         self.result = result
