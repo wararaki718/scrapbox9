@@ -99,3 +99,16 @@ Run the full sample test suite:
 ```bash
 pytest tests -v
 ```
+
+## Make commands
+
+The Makefile manages a local `.venv` and installs the dependencies automatically:
+
+```bash
+make setup
+make run QUESTION="What James Brown songs do you have?"
+make evaluate
+make test
+```
+
+Use `make clean` to remove the virtual environment and pytest cache.
