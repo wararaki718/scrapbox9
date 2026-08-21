@@ -5,7 +5,7 @@ from pathlib import Path
 
 from langchain.tools import tool
 
-from database import find_albums, find_artists, find_tracks
+from app.database import find_albums, find_artists, find_tracks
 
 
 def create_catalog_tools(database: Path):

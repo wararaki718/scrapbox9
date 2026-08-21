@@ -1,6 +1,6 @@
 from langchain_core.runnables import RunnableConfig
 
-from schemas import AgentState
+from app.schemas import AgentState
 from ..question_answering import run_question_answering
 
 

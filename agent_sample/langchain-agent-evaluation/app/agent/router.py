@@ -3,7 +3,7 @@ from typing import Literal
 from langchain_core.messages import SystemMessage
 from langgraph.types import Command
 
-from schemas import AgentState, UserIntent
+from app.schemas import AgentState, UserIntent
 
 IntentName = Literal["refund", "question_answering"]
 RouteName = Literal["refund_agent", "question_answering_agent"]

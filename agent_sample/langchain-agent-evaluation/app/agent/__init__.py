@@ -2,8 +2,8 @@ from pathlib import Path
 
 from langchain.agents import create_agent
 
-from refund import create_refund_graph
-from tools import create_catalog_tools
+from app.refund import create_refund_graph
+from app.tools import create_catalog_tools
 
 from .graph import create_support_graph as _create_support_graph
 from .model import create_model
@@ -11,11 +11,7 @@ from .components.compile_followup import compile_followup
 from .refund_adapter import parent_to_refund_state as _parent_to_refund_state
 from .refund_adapter import refund_to_parent_update as _refund_to_parent_update
 from .router import normalize_route
-from .text import (
-    content_block_to_text as _content_block_to_text,
-    message_content_to_text as _message_content_to_text,
-    normalized_text as _normalized_text,
-)
+from .text import message_content_to_text as _message_content_to_text
 
 
 def create_support_graph(database: Path):

@@ -2,8 +2,7 @@ from typing import TypedDict
 
 from langchain_core.messages import AIMessage, AnyMessage
 
-from schemas import AgentState
-from .text import normalized_text
+from app.schemas import AgentState
 
 
 class RefundState(TypedDict, total=False):
@@ -52,7 +51,9 @@ def refund_to_parent_update(result: RefundState) -> AgentState:
     ):
         if child_key in result:
             update[parent_key] = result[child_key]  # type: ignore[literal-required]
-    followup = normalized_text(result.get("followup"))
-    if followup is not None:
-        update["messages"] = [AIMessage(content=followup)]
+    followup = result.get("followup")
+    if isinstance(followup, str):
+        followup = followup.strip()
+        if followup:
+            update["messages"] = [AIMessage(content=followup)]
     return update

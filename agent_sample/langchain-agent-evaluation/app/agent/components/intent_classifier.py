@@ -1,6 +1,6 @@
 from langgraph.types import Command
 
-from schemas import AgentState
+from app.schemas import AgentState
 from ..router import RouteName, classify_intent
 
 

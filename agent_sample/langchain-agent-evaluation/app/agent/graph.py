@@ -4,9 +4,9 @@ from functools import partial
 from langchain.agents import create_agent
 from langgraph.graph import END, START, StateGraph
 
-from schemas import AgentState, UserIntent
-from refund import create_refund_graph
-from tools import create_catalog_tools
+from app.schemas import AgentState, UserIntent
+from app.refund import create_refund_graph
+from app.tools import create_catalog_tools
 from .model import create_model
 from .components.compile_followup import compile_followup
 from .components.intent_classifier import intent_classifier

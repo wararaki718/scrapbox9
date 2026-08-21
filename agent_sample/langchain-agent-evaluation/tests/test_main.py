@@ -6,9 +6,9 @@ import pytest
 import requests
 from ollama import ResponseError
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-import main
+import app.main as main
 
 
 def test_parser_defaults_to_safe_single_question_mode() -> None:

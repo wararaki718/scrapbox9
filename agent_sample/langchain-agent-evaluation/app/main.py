@@ -9,9 +9,9 @@ import httpx
 import requests
 from ollama import ResponseError
 
-from agent import create_model, create_support_graph
-from database import ensure_database
-from evaluation import run_evaluation_suite, run_graph
+from app.agent import create_model, create_support_graph
+from app.database import ensure_database
+from app.evaluation import run_evaluation_suite, run_graph
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -11,8 +11,8 @@ from langgraph.graph.message import add_messages
 from langgraph.types import Command
 from tabulate import tabulate
 
-from database import lookup_purchases, refund as apply_refund
-from schemas import PurchaseInformation
+from app.database import lookup_purchases, refund as apply_refund
+from app.schemas import PurchaseInformation
 
 REFUND_INSTRUCTIONS = """You extract refund workflow information for a music store support agent.
 Identify only details that are explicitly stated or directly implied by the customer.

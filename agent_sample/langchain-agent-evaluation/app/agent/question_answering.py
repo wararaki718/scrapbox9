@@ -1,6 +1,6 @@
 from langchain_core.runnables import RunnableConfig
 
-from schemas import AgentState
+from app.schemas import AgentState
 from .text import last_message
 
 QUESTION_ANSWERING_SYSTEM_PROMPT = """You are a music store catalog assistant.

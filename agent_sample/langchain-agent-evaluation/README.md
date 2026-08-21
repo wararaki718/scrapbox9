@@ -18,7 +18,7 @@ This sample always keeps inference on your local Ollama runtime. The default mod
 The first CLI run downloads `chinook.db` automatically when the file is missing:
 
 ```bash
-python main.py --question "What James Brown songs do you have?"
+python -m app.main --question "What James Brown songs do you have?"
 ```
 
 - Download target: `./chinook.db` by default, or `--database <path>` if provided.
@@ -32,22 +32,22 @@ These entry points run the graph with `env="test"`, so refund flows stay in prev
 Ask one question:
 
 ```bash
-python main.py --question "What James Brown songs do you have?"
+python -m app.main --question "What James Brown songs do you have?"
 ```
 
 Run the evaluation suite:
 
 ```bash
-python main.py --evaluate
+python -m app.main --evaluate
 ```
 
 Run both in one invocation (question first, then evaluations):
 
 ```bash
-python main.py --question "Refund invoice 237." --evaluate
+python -m app.main --question "Refund invoice 237." --evaluate
 ```
 
-If you run `python main.py` with no action flags, the CLI prints help and exits successfully.
+If you run `python -m app.main` with no action flags, the CLI prints help and exits successfully.
 
 ## Optional LangSmith tracing
 
@@ -55,7 +55,7 @@ Tracing is opt-in and only enabled when you already have a LangSmith API key:
 
 ```bash
 export LANGSMITH_API_KEY=your_key_here
-python main.py --question "What James Brown songs do you have?" --langsmith-tracing
+python -m app.main --question "What James Brown songs do you have?" --langsmith-tracing
 ```
 
 - `--langsmith-tracing` sets `LANGSMITH_TRACING=true`
@@ -82,8 +82,8 @@ If the CLI cannot reach Ollama or the model is unavailable:
 3. Re-run one of the smoke tests:
 
    ```bash
-   python main.py --question "What James Brown songs do you have?"
-   python main.py --evaluate
+   python -m app.main --question "What James Brown songs do you have?"
+   python -m app.main --evaluate
    ```
 
 ## Test commands
@@ -91,7 +91,7 @@ If the CLI cannot reach Ollama or the model is unavailable:
 Run the focused CLI tests:
 
 ```bash
-pytest tests/test_langchain_agent_evaluation_main.py -v
+pytest tests/test_main.py -v
 ```
 
 Run the full sample test suite:

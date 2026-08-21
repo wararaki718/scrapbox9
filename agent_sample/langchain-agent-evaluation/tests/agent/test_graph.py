@@ -3,17 +3,17 @@ from pathlib import Path
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-import agent as agent_module
-from schemas import UserIntent
+import app.agent as agent_module
+from app.schemas import UserIntent
 
 
 def test_graph_components_expose_named_node_functions() -> None:
-    from agent.components.compile_followup import compile_followup
-    from agent.components.intent_classifier import intent_classifier
-    from agent.components.question_answering_agent import question_answering_agent
-    from agent.components.refund_agent import refund_agent
+    from app.agent.components.compile_followup import compile_followup
+    from app.agent.components.intent_classifier import intent_classifier
+    from app.agent.components.question_answering_agent import question_answering_agent
+    from app.agent.components.refund_agent import refund_agent
 
     assert callable(compile_followup)
     assert callable(intent_classifier)

@@ -7,9 +7,9 @@ import pytest
 import requests
 from pydantic import ValidationError
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from database import (
+from app.database import (
     DATABASE_URL,
     ensure_database,
     find_albums,
@@ -18,8 +18,8 @@ from database import (
     lookup_purchases,
     refund,
 )
-from schemas import PurchaseInformation, UserIntent
-from tools import create_catalog_tools
+from app.schemas import PurchaseInformation, UserIntent
+from app.tools import create_catalog_tools
 
 
 def build_catalog_database(tmp_path: Path) -> Path:
@@ -369,7 +369,7 @@ def test_ensure_database_returns_existing_file_without_downloading(
     def fail_get(*args, **kwargs):
         raise AssertionError("requests.get should not be called")
 
-    monkeypatch.setattr("database.requests.get", fail_get)
+    monkeypatch.setattr("app.database.requests.get", fail_get)
 
     assert ensure_database(database) == database
     assert database.read_bytes() == b"existing-data"
@@ -382,7 +382,7 @@ def test_ensure_database_redownloads_an_empty_existing_file(
     database.touch()
     response = FakeResponse(chunks=[b"chinook"])
 
-    monkeypatch.setattr("database.requests.get", lambda *args, **kwargs: response)
+    monkeypatch.setattr("app.database.requests.get", lambda *args, **kwargs: response)
 
     assert ensure_database(database) == database
     assert database.read_bytes() == b"chinook"
@@ -402,7 +402,7 @@ def test_ensure_database_downloads_atomically_with_timeout(
         captured["stream"] = stream
         return response
 
-    monkeypatch.setattr("database.requests.get", fake_get)
+    monkeypatch.setattr("app.database.requests.get", fake_get)
 
     assert ensure_database(database) == database
     assert database.read_bytes() == b"chinook"
@@ -424,7 +424,7 @@ def test_ensure_database_cleans_up_partial_file_and_raises_runtime_error(
         del url, timeout, stream
         return response
 
-    monkeypatch.setattr("database.requests.get", fake_get)
+    monkeypatch.setattr("app.database.requests.get", fake_get)
 
     with pytest.raises(RuntimeError, match="Failed to download Chinook database") as exc_info:
         ensure_database(database)
