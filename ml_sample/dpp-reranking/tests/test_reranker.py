@@ -8,6 +8,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.reranker import DPPReranker, GreedyMapSelector, KernelBuilder
 
 
+class RerankerModuleTests(unittest.TestCase):
+    def test_each_class_is_defined_in_its_own_module(self) -> None:
+        self.assertEqual(KernelBuilder.__module__, "app.reranker.builder")
+        self.assertEqual(GreedyMapSelector.__module__, "app.reranker.selector")
+        self.assertEqual(DPPReranker.__module__, "app.reranker.reranker")
+
+
 class KernelBuilderTests(unittest.TestCase):
     def test_builds_symmetric_positive_semidefinite_quality_kernel(self) -> None:
         kernel = KernelBuilder().build(
