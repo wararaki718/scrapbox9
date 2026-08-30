@@ -14,4 +14,5 @@ class TwoTowerModel(nn.Module):
     def forward(self, user_ids: torch.Tensor, item_ids: torch.Tensor) -> torch.Tensor:
         users = self.user_tower(user_ids)
         items = self.item_tower(item_ids)
-        return (users * items).sum(dim=-1)
+        similarity = (users * items).sum(dim=-1)
+        return (similarity + 1.0) / 2.0
