@@ -15,9 +15,10 @@ class MainTests(unittest.TestCase):
             main()
 
         sections = output.getvalue().strip().split("\n\n")
-        self.assertEqual(len(sections), 2)
+        self.assertEqual(len(sections), 3)
         relevance_lines = sections[0].splitlines()
         reranked_lines = sections[1].splitlines()
+        evaluation_lines = sections[2].splitlines()
 
         self.assertEqual(relevance_lines[0], "Relevance ranking")
         self.assertEqual(reranked_lines[0], "DPP ranking")
@@ -31,3 +32,6 @@ class MainTests(unittest.TestCase):
         relevance_item_ids = {int(line.split()[1]) for line in relevance_lines[2:]}
         reranked_item_ids = {int(line.split()[1]) for line in reranked_lines[2:]}
         self.assertTrue(reranked_item_ids <= relevance_item_ids)
+        self.assertEqual(evaluation_lines[0], "Offline evaluation")
+        self.assertTrue(any(line.startswith("Reranking 1") for line in evaluation_lines))
+        self.assertTrue(any(line.startswith("DPP") for line in evaluation_lines))

@@ -36,3 +36,37 @@ $O(Nk^2)$ time. `DPPReranker` composes both operations.
 The in-memory data is intentionally small and deterministic. Categories make
 the difference between the relevance-only and diversified result lists easy to
 inspect; no external dataset is downloaded.
+
+## Offline Evaluation
+
+`make run` also compares Reranking 1 with DPP using deterministic dummy graded
+relevance judgments. The evaluation reports NDCG@5, NDCG@10, NDCG@20,
+intra-list diversity (ILD)@20, and category coverage@20.
+
+Three sizes must be configured independently:
+
+- $M$: candidates passed from Reranking 1 to DPP.
+- $K$: items selected by DPP.
+- $N$: cutoff used by NDCG@$N$.
+
+For one production ranking evaluated at several cutoffs, keep the DPP setting
+fixed and choose
+
+$$
+M > K \ge \max(N).
+$$
+
+For example, NDCG@5, @10, and @20 can compare a Reranking 1 list with 20 items
+selected by DPP from 100 candidates. This sample uses all $M=27$ unseen dummy
+candidates and selects $K=20$ because the catalog is deliberately small.
+This evaluation policy is intentionally separate from the compact display demo,
+which selects 10 items from the top 20 candidates.
+
+Do not set $M=K=N$: selecting every candidate removes DPP's subset-selection
+effect. Also, do not change $K$ for each NDCG cutoff unless the goal is to
+compare separate DPP policies rather than one deployable ranking.
+
+DPP produces a subset rather than an intrinsic ranking. For NDCG, this sample
+sorts the selected subset by the original Reranking 1 relevance score. NDCG
+measures relevance, so it is reported together with ILD and category coverage
+to expose the relevance-diversity tradeoff.

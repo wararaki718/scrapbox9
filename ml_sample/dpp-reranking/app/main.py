@@ -2,11 +2,12 @@ import torch
 
 from app.config import TrainConfig
 from app.data import create_reranking_data, create_training_data
+from app.evaluate import Evaluator
 from app.models import TwoTowerModel
 from app.ranker import CandidateRanker
 from app.reranker import DPPReranker
 from app.train import train
-from app.utils import show
+from app.utils import show, show_evaluation
 
 
 def main() -> None:
@@ -38,6 +39,12 @@ def main() -> None:
         ranking.recommendations[:candidate_count],
         [ranking.recommendations[index] for index in selected],
     )
+    relevance_by_category = {"books": 3.0, "music": 2.0, "sports": 1.0}
+    relevance_by_item_id = {
+        recommendation.item_id: relevance_by_category[recommendation.category]
+        for recommendation in ranking.recommendations
+    }
+    show_evaluation(Evaluator().evaluate(ranking, relevance_by_item_id))
 
 
 if __name__ == "__main__":
