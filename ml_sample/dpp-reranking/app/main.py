@@ -27,14 +27,15 @@ def main() -> None:
     )
 
     ranking = CandidateRanker().rank(model, reranking_data, user_id=0)
-    top_k = 20
+    candidate_count = 20
+    rerank_count = 10
     selected = DPPReranker().rerank(
-        ranking.scores,
-        ranking.item_embeddings,
-        top_k,
+        ranking.scores[:candidate_count],
+        ranking.item_embeddings[:candidate_count],
+        rerank_count,
     )
     show(
-        ranking.recommendations[:top_k],
+        ranking.recommendations[:candidate_count],
         [ranking.recommendations[index] for index in selected],
     )
 
