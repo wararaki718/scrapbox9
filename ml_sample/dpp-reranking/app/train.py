@@ -6,8 +6,8 @@ import torch
 from torch.nn import functional
 
 from app.config import TrainConfig
-from app.data import Interaction
 from app.model import TwoTowerModel
+from app.schemas import Interaction
 
 
 def train(

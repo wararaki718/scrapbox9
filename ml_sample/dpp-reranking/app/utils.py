@@ -2,7 +2,7 @@ import sys
 from collections.abc import Sequence
 from typing import TextIO
 
-from app.data import Recommendation
+from app.schemas import Recommendation
 
 
 def show(

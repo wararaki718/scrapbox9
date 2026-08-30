@@ -4,7 +4,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.config import TrainConfig
-from app.data import Recommendation, create_sample_data
+from app.data import create_sample_data
+from app.schemas import Recommendation
 
 
 class DataTests(unittest.TestCase):

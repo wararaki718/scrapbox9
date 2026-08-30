@@ -1,30 +1,4 @@
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class Item:
-    item_id: int
-    category: str
-
-
-@dataclass(frozen=True)
-class Interaction:
-    user_id: int
-    item_id: int
-
-
-@dataclass(frozen=True)
-class Recommendation:
-    item_id: int
-    category: str
-    score: float
-
-
-@dataclass(frozen=True)
-class SampleData:
-    num_users: int
-    items: tuple[Item, ...]
-    interactions: tuple[Interaction, ...]
+from app.schemas import Interaction, Item, SampleData
 
 
 def create_sample_data() -> SampleData:
