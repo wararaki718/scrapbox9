@@ -5,8 +5,7 @@ from pathlib import Path
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from app.item_tower import ItemTower
-from app.user_tower import UserTower
+from app.models import ItemTower, UserTower
 
 
 class TowerTests(unittest.TestCase):

@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 
-from app.item_tower import ItemTower
-from app.user_tower import UserTower
+from app.models.item_tower import ItemTower
+from app.models.user_tower import UserTower
 
 
 class TwoTowerModel(nn.Module):

@@ -5,7 +5,7 @@ from pathlib import Path
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from app.model import TwoTowerModel
+from app.models import TwoTowerModel
 
 
 class ModelTests(unittest.TestCase):

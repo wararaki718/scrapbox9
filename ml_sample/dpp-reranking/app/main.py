@@ -2,7 +2,7 @@ import torch
 
 from app.config import TrainConfig
 from app.data import create_sample_data
-from app.model import TwoTowerModel
+from app.models import TwoTowerModel
 from app.reranker import DPPReranker
 from app.schemas import Recommendation
 from app.train import train
