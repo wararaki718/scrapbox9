@@ -14,7 +14,12 @@ class MainTests(unittest.TestCase):
         with redirect_stdout(output):
             main()
 
-        text = output.getvalue()
-        self.assertIn("Relevance ranking", text)
-        self.assertIn("DPP ranking", text)
-        self.assertEqual(text.count("rank  item  category  score"), 2)
+        sections = output.getvalue().strip().split("\n\n")
+        self.assertEqual(len(sections), 2)
+        for section, title in zip(
+            sections, ("Relevance ranking", "DPP ranking"), strict=True
+        ):
+            lines = section.splitlines()
+            self.assertEqual(lines[0], title)
+            self.assertEqual(lines[1], "rank  item  category  score")
+            self.assertEqual(len(lines[2:]), 20)

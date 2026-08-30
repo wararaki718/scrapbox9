@@ -1,7 +1,7 @@
 import torch
 
 from app.config import TrainConfig
-from app.data import create_sample_data
+from app.data import create_reranking_data, create_training_data
 from app.models import TwoTowerModel
 from app.ranker import CandidateRanker
 from app.reranker import DPPReranker
@@ -12,12 +12,22 @@ from app.utils import show
 def main() -> None:
     config = TrainConfig()
     torch.manual_seed(config.seed)
-    data = create_sample_data()
-    model = TwoTowerModel(data.num_users, len(data.items), config.embedding_dim)
-    train(model, data.interactions, len(data.items), config)
+    training_data = create_training_data()
+    reranking_data = create_reranking_data()
+    model = TwoTowerModel(
+        training_data.num_users,
+        len(training_data.items),
+        config.embedding_dim,
+    )
+    train(
+        model,
+        training_data.interactions,
+        len(training_data.items),
+        config,
+    )
 
-    ranking = CandidateRanker().rank(model, data, user_id=0)
-    top_k = 5
+    ranking = CandidateRanker().rank(model, reranking_data, user_id=0)
+    top_k = 20
     selected = DPPReranker().rerank(
         ranking.scores,
         ranking.item_embeddings,
