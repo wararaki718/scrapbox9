@@ -4,7 +4,7 @@ from pathlib import Path
 
 import torch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from app.models import TwoTowerModel
 
 
@@ -17,3 +17,7 @@ class ModelTests(unittest.TestCase):
         scores.sum().backward()
         self.assertIsNotNone(model.user_tower.embedding.weight.grad)
         self.assertIsNotNone(model.item_tower.embedding.weight.grad)
+
+
+if __name__ == "__main__":
+    unittest.main()
