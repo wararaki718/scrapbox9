@@ -1,0 +1,55 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.example.elasticsearch'
+version = '1.0.0'
+
+def environment = file('.env').readLines()
+    .findAll { it && !it.startsWith('#') }
+    .collectEntries { line ->
+        def parts = line.split('=', 2)
+        [(parts[0]): parts[1]]
+    }
+def elasticsearchVersion = environment.ELASTICSEARCH_VERSION
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly "org.elasticsearch:elasticsearch:${elasticsearchVersion}"
+
+    testImplementation "org.elasticsearch:elasticsearch:${elasticsearchVersion}"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+def processPluginMetadata = tasks.register('processPluginMetadata', Copy) {
+    from('src/main/plugin-metadata') {
+        expand(
+            pluginVersion: project.version,
+            elasticsearchVersion: elasticsearchVersion
+        )
+    }
+    into(layout.buildDirectory.dir('generated-resources/plugin-metadata'))
+}
+
+tasks.register('pluginZip', Zip) {
+    dependsOn(tasks.named('jar'), processPluginMetadata)
+    archiveBaseName = 'reverse-ranking'
+    archiveVersion = project.version
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+
+    from(tasks.named('jar'))
+    from(processPluginMetadata)
+}
