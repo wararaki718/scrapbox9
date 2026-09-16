@@ -11,7 +11,7 @@ Elasticsearch プラグインは本体とバージョンを完全に一致させ
 ## 必要なソフトウェア
 
 - Docker と Docker Compose
-- `make verify` には `curl` と Python 3 が必要
+- `make demo` と `make verify` には `curl` と Python 3 が必要
 - ローカルで Gradle ビルドする場合のみ Java 21
 
 macOS で Java 21 を選択する例:
@@ -60,6 +60,75 @@ curl -fsS 'http://localhost:9200/_cat/plugins?h=component,version'
 
 ```text
 reverse-ranking 1.0.0
+```
+
+## 検索レスポンスの確認
+
+`make demo` は、サンプルデータの投入、通常検索、`reverse_rank` を使った検索、各レスポンスの整形表示までを 1 コマンドで実行します。出力は各 hit の `_id`、`_score`、`_source` だけを pretty JSON で表示します。
+
+> 警告: `scripts/demo.sh` は `ES_URL` 上の固定インデックス `reverse-ranking-response-demo` を毎回削除して作り直し、終了時にも削除します。既定の `ES_URL` は `http://localhost:9200` です。保持したい `reverse-ranking-response-demo` があるクラスタには向けないでください。
+
+- 通常検索の上位 ID は `4, 3, 2`
+- `reverse_rank` 適用後の上位 ID は `2, 3, 4`
+- 代表的な `_score` は通常検索で `4.0, 3.0, 2.0`、`reverse_rank` 適用後で `0.5, 0.33333334, 0.25`
+
+実行コマンド:
+
+```sh
+make demo
+```
+
+代表的な出力:
+
+```json
+=== Normal search ===
+[
+  {
+    "_id": "4",
+    "_score": 4.0,
+    "_source": {
+      "rank": 4
+    }
+  },
+  {
+    "_id": "3",
+    "_score": 3.0,
+    "_source": {
+      "rank": 3
+    }
+  },
+  {
+    "_id": "2",
+    "_score": 2.0,
+    "_source": {
+      "rank": 2
+    }
+  }
+]
+=== Reverse ranking search ===
+[
+  {
+    "_id": "2",
+    "_score": 0.5,
+    "_source": {
+      "rank": 2
+    }
+  },
+  {
+    "_id": "3",
+    "_score": 0.33333334,
+    "_source": {
+      "rank": 3
+    }
+  },
+  {
+    "_id": "4",
+    "_score": 0.25,
+    "_source": {
+      "rank": 4
+    }
+  }
+]
 ```
 
 ## 逆順リランキングの確認
